@@ -94,7 +94,7 @@ def query():
     print("query obj: {}".format(query_obj))
 
     #### Step 4.b.ii
-    response = None   # TODO: Replace me with an appropriate call to OpenSearch
+    response = opensearch.search(body=query_obj, index='bbuy_products')   # TODO: Replace me with an appropriate call to OpenSearch
     # Postprocess results here if you so desire
 
     #print(response)
@@ -110,10 +110,13 @@ def create_query(user_query, filters, sort="_score", sortDir="desc"):
     print("Query: {} Filters: {} Sort: {}".format(user_query, filters, sort))
     query_obj = {
         'size': 10,
-        "query": {
-            "match_all": {} # Replace me with a query that both searches and filters
+        'query': {
+            'multi_match': {
+                'query': user_query,
+                'fields': ['name', 'shortDescription', 'longDescription']
+            } # Replace me with a query that both searches and filters
         },
-        "aggs": {
+        'aggs': {
             #### Step 4.b.i: create the appropriate query and aggregations here
 
         }
