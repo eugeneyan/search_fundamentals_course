@@ -111,13 +111,57 @@ def create_query(user_query, filters, sort="_score", sortDir="desc"):
     query_obj = {
         'size': 10,
         'query': {
-            'multi_match': {
-                'query': user_query,
-                'fields': ['name', 'shortDescription', 'longDescription']
-            } # Replace me with a query that both searches and filters
+            'bool': {
+                'must': {
+                    'query_string': {
+                        'query': user_query,
+                        'fields': ['name', 'shortDescription', 'longDescription'],
+                        'phrase_slop': 3,
+                    },
+                },
+                'filter': filters
+            }
         },
         'aggs': {
             #### Step 4.b.i: create the appropriate query and aggregations here
+            'regularPrice': {
+                'range': {
+                    'field': 'regularPrice',
+                    'ranges': [
+                        {
+                            'key': '<10',
+                            'from': 0,
+                            'to': 10
+                        },
+                        {
+                            'key': '10-25',
+                            'from': 10,
+                            'to': 25
+                        },
+                        {
+                            'key': '25-50',
+                            'from': 25,
+                            'to': 50
+                        },
+                        {
+                            'key': '50-250',
+                            'from': 50,
+                            'to': 250
+                        },
+                        {
+                            'key': '>250',
+                            'from': 250
+                        }
+                    ]
+                }
+            },
+            'department': {
+                'terms':
+                    {
+                        'field': 'department.keyword',
+                        'size': 10
+                    }
+            }
 
         }
     }
