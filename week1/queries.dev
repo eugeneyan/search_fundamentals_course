@@ -1,0 +1,83 @@
+# Test query
+GET bbuy_products/_search
+{
+ "size": 10,
+  "query": {
+      "bool":{
+        "must":[
+            {"query_string": {
+                "query": "\"ipad 2\"",
+                "fields": ["name^100", "shortDescription^50", "longDescription^10", "department"]
+            }}
+        ]     
+      }
+  },
+  "_source": ["productId", "name", "shortDescription", "longDescription", "department", "salesRankShortTerm",  "salesRankMediumTerm", "salesRankLongTerm", "regularPrice", "categoryPath"]
+}
+
+
+# Boosting queries (Doesn't work very well)
+GET bbuy_products/_search
+{
+ "size": 10,
+  "query": {
+    "boosting": {
+      "positive": {
+        "query_string": {
+          "query": "\"apple ipad 2\"",
+          "fields": ["name^100", "shortDescription^50", "longDescription^10", "department"]
+        }
+      },
+      "negative": {
+        "query_string": {
+          "query": "compatible",
+          "fields": ["shortDescription^50", "longDescription^100"]
+        }
+      },
+      "negative_boost": 0.5
+    }
+  },
+  "_source": ["productId", "name", "shortDescription", "longDescription", "department", "salesRankShortTerm",  "salesRankMediumTerm", "salesRankLongTerm", "regularPrice", "categoryPath"]
+}
+
+# Add function score
+GET bbuy_products/_search
+{
+ "size": 10,
+  "query": {
+      "function_score": {
+        "query": {
+           "query_string": {
+                    "query": "\"ipad 2\"",
+                    "fields": ["name^1000", "shortDescription^50", "longDescription^10", "department"]
+            }
+        },
+        "boost_mode": "multiply",
+        "score_mode": "avg",
+        "functions": [
+          {
+            "field_value_factor": {
+              "field": "salesRankLongTerm",
+              "missing": 100000000,
+              "modifier": "reciprocal"
+            }
+          },
+          {
+            "field_value_factor": {
+              "field": "salesRankMediumTerm",
+              "missing": 100000000,
+              "modifier": "reciprocal"
+            }
+          },
+          {
+            "field_value_factor": {
+              "field": "salesRankShortTerm",
+              "missing": 100000000,
+              "modifier": "reciprocal"
+            }
+          }
+        ]
+      }
+  },
+  "_source": ["productId", "name", "shortDescription", "longDescription", "department", "salesRankShortTerm",  "salesRankMediumTerm", "salesRankLongTerm", "regularPrice"]
+}

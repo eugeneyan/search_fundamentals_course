@@ -23,10 +23,16 @@
         }
       },
       "bestBuyItemId": {
-        "type": "integer"
+        "type": "keyword",
+        "fields": {
+          "keyword": {
+            "type": "keyword",
+            "ignore_above": 256
+          }
+        }
       },
       "bestSellingRank": {
-        "type": "integer"
+        "type": "long"
       },
       "categoryLeaf": {
         "type": "text",
@@ -47,7 +53,7 @@
         }
       },
       "categoryPathCount": {
-        "type": "integer"
+        "type": "float"
       },
       "categoryPathIds": {
         "type": "text",
@@ -68,7 +74,7 @@
         }
       },
       "classId": {
-        "type": "integer"
+        "type": "long"
       },
       "color": {
         "type": "text",
@@ -89,7 +95,7 @@
         }
       },
       "customerReviewAverage": {
-        "type": "integer"
+        "type": "float"
       },
       "customerReviewCount": {
         "type": "integer"
@@ -104,7 +110,13 @@
         }
       },
       "departmentId": {
-        "type": "integer"
+        "type": "text",
+        "fields": {
+          "keyword": {
+            "type": "keyword",
+            "ignore_above": 256
+          }
+        }
       },
       "depth": {
         "type": "text",
@@ -207,6 +219,9 @@
           "keyword": {
             "type": "keyword",
             "ignore_above": 256
+          },
+          "suggest": {
+            "type": "completion"
           }
         }
       },
@@ -217,7 +232,7 @@
         "type": "boolean"
       },
       "productId": {
-        "type": "integer",
+        "type": "text",
         "fields": {
           "keyword": {
             "type": "keyword",
@@ -226,16 +241,10 @@
         }
       },
       "quantityLimit": {
-        "type": "integer"
+        "type": "long"
       },
       "regularPrice": {
-        "type": "float",
-        "fields": {
-          "keyword": {
-            "type": "keyword",
-            "ignore_above": 256
-          }
-        }
+        "type": "float"
       },
       "relatedProducts": {
         "type": "text",
@@ -259,25 +268,19 @@
         }
       },
       "salesRankLongTerm": {
-        "type": "integer"
+        "type": "long"
       },
       "salesRankMediumTerm": {
-        "type": "integer"
+        "type": "long"
       },
       "salesRankShortTerm": {
-        "type": "integer"
+        "type": "long"
       },
       "shippingCost": {
         "type": "float"
       },
       "shippingWeight": {
-        "type": "text",
-        "fields": {
-          "keyword": {
-            "type": "keyword",
-            "ignore_above": 256
-          }
-        }
+        "type": "float"
       },
       "shortDescription": {
         "type": "text",
@@ -299,7 +302,13 @@
         }
       },
       "sku": {
-        "type": "integer"
+        "type": "text",
+        "fields": {
+          "keyword": {
+            "type": "keyword",
+            "ignore_above": 256
+          }
+        }
       },
       "startDate": {
         "type": "date"
@@ -314,7 +323,7 @@
         }
       },
       "subclassId": {
-        "type": "integer"
+        "type": "long"
       },
       "type": {
         "type": "text",

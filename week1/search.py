@@ -4,6 +4,7 @@
 from flask import (
     Blueprint, redirect, render_template, request, url_for
 )
+import json
 
 from week1.opensearch import get_opensearch
 
@@ -30,11 +31,11 @@ def process_filters(filters_input):
             print("from: {}, to: {}".format(from_val, to_val))
             # we need to turn the "to-from" syntax of aggregations to the "gte,lte" syntax of range filters.
             to_from = {}
-            if from_val:
+            if from_val and from_val != "*":
                 to_from["gte"] = from_val
             else:
                 from_val = "*"  # set it to * for display purposes, but don't use it in the query
-            if to_val:
+            if to_val and to_val != "*":
                 to_from["lt"] = to_val
             else:
                 to_val = "*"  # set it to * for display purposes, but don't use it in the query
@@ -91,7 +92,7 @@ def query():
     else:
         query_obj = create_query("*", [], sort, sortDir)
 
-    print("query obj: {}".format(query_obj))
+    print("query obj: \n{}".format(json.dumps(query_obj)))
 
     #### Step 4.b.ii
     response = opensearch.search(body=query_obj, index='bbuy_products')   # TODO: Replace me with an appropriate call to OpenSearch
@@ -111,15 +112,44 @@ def create_query(user_query, filters, sort="_score", sortDir="desc"):
     query_obj = {
         'size': 10,
         'query': {
-            'bool': {
-                'must': {
-                    'query_string': {
-                        'query': user_query,
-                        'fields': ['name', 'shortDescription', 'longDescription'],
-                        'phrase_slop': 3,
-                    },
+            'function_score': {
+                'query': {
+                    'bool': {
+                        'must': {
+                            'query_string': {
+                                'query': user_query,
+                                'fields': ["name^100", "shortDescription^50", "longDescription^10", "department"],
+                                'phrase_slop': 3,
+                            },
+                        },
+                        'filter': filters
+                    }
                 },
-                'filter': filters
+                "boost_mode": "multiply",
+                "score_mode": "avg",
+                "functions": [
+                {
+                    "field_value_factor": {
+                    "field": "salesRankLongTerm",
+                    "missing": 100000000,
+                    "modifier": "reciprocal"
+                    }
+                },
+                {
+                    "field_value_factor": {
+                    "field": "salesRankMediumTerm",
+                    "missing": 100000000,
+                    "modifier": "reciprocal"
+                    }
+                },
+                {
+                    "field_value_factor": {
+                    "field": "salesRankShortTerm",
+                    "missing": 100000000,
+                    "modifier": "reciprocal"
+                    }
+                }
+                ],
             }
         },
         'aggs': {
@@ -128,30 +158,11 @@ def create_query(user_query, filters, sort="_score", sortDir="desc"):
                 'range': {
                     'field': 'regularPrice',
                     'ranges': [
-                        {
-                            'key': '<10',
-                            'from': 0,
-                            'to': 10
-                        },
-                        {
-                            'key': '10-25',
-                            'from': 10,
-                            'to': 25
-                        },
-                        {
-                            'key': '25-50',
-                            'from': 25,
-                            'to': 50
-                        },
-                        {
-                            'key': '50-250',
-                            'from': 50,
-                            'to': 250
-                        },
-                        {
-                            'key': '>250',
-                            'from': 250
-                        }
+                        {'key': '<10', 'from': 0, 'to': 10},
+                        {'key': '10-50', 'from': 10, 'to': 50},
+                        {'key': '50-200', 'from': 50, 'to': 200},
+                        {'key': '200-500', 'from': 200, 'to': 500},
+                        {'key': '>500', 'from': 500}
                     ]
                 }
             },
