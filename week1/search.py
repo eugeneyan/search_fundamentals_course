@@ -161,8 +161,22 @@ def create_query(user_query, filters, sort="_score", sortDir="desc"):
                         'field': 'department.keyword',
                         'size': 10
                     }
+            },
+            'missing_images': {
+                'missing': 
+                {
+                    'field': 'image.keyword'
+                }
             }
-
+        },
+        'highlight': {
+            'pre_tags': ['<span style="background-color:yellow">'],
+            'post_tags': ['</span>'],
+            'fields': {
+                'name': {},
+                'shortDescription': {},
+                'longDescription': {}
+            }
         }
     }
     return query_obj
