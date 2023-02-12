@@ -177,6 +177,13 @@ def create_query(user_query, filters, sort="_score", sortDir="desc"):
                 'shortDescription': {},
                 'longDescription': {}
             }
-        }
+        },
+        'sort': [
+            {
+                sort: {
+                    'order': sortDir
+                }
+            }
+        ]
     }
     return query_obj
