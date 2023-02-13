@@ -1,5 +1,6 @@
 #
 # The main search hooks for the Search Flask application.
+# Solution: https://github.com/ilkcan/search_fundamentals_course/tree/feb-2023/week1
 #
 from flask import (
     Blueprint, redirect, render_template, request, url_for

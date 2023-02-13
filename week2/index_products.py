@@ -19,7 +19,7 @@ logger.setLevel(logging.INFO)
 logging.basicConfig(format='%(levelname)s:%(message)s')
 
 # NOTE: this is not a complete list of fields.  If you wish to add more, put in the appropriate XPath expression.
-#TODO: is there a way to do this using XPath/XSL Functions so that we don't have to maintain a big list?
+# TODO: is there a way to do this using XPath/XSL Functions so that we don't have to maintain a big list?
 mappings =  [
             "productId/text()", "productId",
             "sku/text()", "sku",
