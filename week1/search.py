@@ -54,11 +54,10 @@ def process_filters(filters_input):
     return filters, display_filters, applied_filters
 
 
-
 # Our main query route.  Accepts POST (via the Search box) and GETs via the clicks on aggregations/facets
 @bp.route('/query', methods=['GET', 'POST'])
 def query():
-    opensearch = get_opensearch() # Load up our OpenSearch client from the opensearch.py file.
+    opensearch = get_opensearch()  # Load up our OpenSearch client from the opensearch.py file.
     # Put in your code to query opensearch.  Set error as appropriate.
     error = None
     user_query = None
@@ -94,10 +93,11 @@ def query():
     print("query obj: {}".format(query_obj))
 
     #### Step 4.b.ii
-    response = None   # TODO: Replace me with an appropriate call to OpenSearch
+    response = opensearch.search(query_obj,
+                                 index="bbuy_products")
     # Postprocess results here if you so desire
 
-    #print(response)
+    # print(response)
     if error is None:
         return render_template("search_results.jinja2", query=user_query, search_response=response,
                                display_filters=display_filters, applied_filters=applied_filters,
@@ -111,11 +111,85 @@ def create_query(user_query, filters, sort="_score", sortDir="desc"):
     query_obj = {
         'size': 10,
         "query": {
-            "match_all": {} # Replace me with a query that both searches and filters
+            "function_score": {
+                "query": {
+                    "bool": {
+                        "must": [
+                            {
+                                "query_string": {
+                                    "query": user_query,
+                                    "fields": ["name", "shortDescription", "longDescription"],
+                                    "phrase_slop": 3
+                                }
+                            }
+                        ],
+                        "filter": filters
+                    }
+                },
+                "boost_mode": "replace",
+                "score_mode": "avg",
+                "functions": [
+                    {
+                        "field_value_factor": {
+                            "field": "salesRankShortTerm",
+                            "factor": 1,
+                            "missing": 100000000,
+                            "modifier": "reciprocal"
+
+                        }
+                    },
+                    {
+                        "field_value_factor": {
+                            "field": "salesRankMediumTerm",
+                            "factor": 2,
+                            "missing": 100000000,
+                            "modifier": "reciprocal"
+
+                        }
+                    },
+                    {
+                        "field_value_factor": {
+                            "field": "salesRankLongTerm",
+                            "factor": 3,
+                            "missing": 100000000,
+                            "modifier": "reciprocal"
+
+                        }
+                    }
+                ]
+            }
+
         },
         "aggs": {
+            "missing_images": {
+                "missing": {"field": "image.keyword"}
+            },
+            "department": {
+                "terms": {"field": "department.keyword"}
+            },
+            "regularPrice": {
+                "range": {"field": "regularPrice",
+                          "ranges": [
+                              {"from": 0.0, "to": 5.0},
+                              {"from": 5.0, "to": 10.0},
+                              {"from": 10.0, "to": 25.0},
+                              {"from": 25.0, "to": 100.0},
+                              {"from": 100.0, "to": 1000.0},
+                              {"from": 1000.0, "to": 10000.0}
+                          ]}
+            }
             #### Step 4.b.i: create the appropriate query and aggregations here
 
-        }
+        },
+        "highlight": {
+            "fields": {
+                "name": {},
+                "shortDescription": {},
+                "longDescription": {}
+            }
+        },
+        "sort": [
+            {sort: {"order": sortDir}}
+        ]
     }
     return query_obj
