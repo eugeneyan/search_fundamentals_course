@@ -252,11 +252,10 @@
             "type": "keyword",
             "ignore_above": 2048
           },
-        "hyphens":{
-          "type": "text",
-          "analyzer": "smarter_hyphens"
-        }
-
+          "hyphens":{
+            "type": "text",
+            "analyzer": "smarter_hyphens"
+          }
         }
       },
       "suggest": {
