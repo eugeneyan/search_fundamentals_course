@@ -63,11 +63,32 @@ def autocomplete():
         print(f"Prefix: {prefix}")
         if prefix is not None:
             type = request.args.get("type", "queries") # If type == queries, this is an autocomplete request, else if products, it's an instant search request.
-            ##### W2, L3, S1
-            search_response = None
+            if type == "queries":
+                _index = "bbuy_queries"
+            elif type == "products":
+                _index = "bbuy_products"
+            else:
+                raise NotImplementedError
+            
+            ##### W2, L3, S1 Implement autocomplete: https://www.elastic.co/guide/en/elasticsearch/reference/7.17/search-suggesters.html#querying
+            suggester_query_obj = {
+                "suggest": {
+                    "autocomplete": {
+                        "prefix": prefix,
+                        "completion": {
+                            "field": "suggest",
+                            "skip_duplicates": True
+                        }
+                    }
+                }
+            }
+            
+            opensearch = get_opensearch()
+            search_response = opensearch.search(body=suggester_query_obj, index=_index, explain=False)
             print("TODO: implement autocomplete AND instant search")
             if (search_response and search_response['suggest']['autocomplete'] and search_response['suggest']['autocomplete'][0]['length'] > 0): # just a query response
                 results = search_response['suggest']['autocomplete'][0]['options']
+                
     print(f"Results: {results}")
     return {"completions": results}
 
