@@ -52,7 +52,7 @@
             "type": "text",
             "analyzer": "english"
           }
-        }
+        } 
       },
       "suggest": {
         "type": "completion",
