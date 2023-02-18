@@ -44,7 +44,7 @@ Got the same results.
 
 ### Improving ranking
 
-Did not do.
+Did not do (yet).
 
 ### Spelling suggestions
 
