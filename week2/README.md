@@ -26,3 +26,6 @@
         - "i phone" tokenizes to -> ["i", "phone"] and filters to -> ["i", "phone"]
         - "iPhone4" tokenizes to -> ["iPhone4"] and filters to ["iphone4", "iphone", "i", "phone", "4"]
         - "Iphone4" tokenizers to ["Iphone4"] and filters to ["iphone4", "iphone", "4"]
+
+- Working with suggesters
+  - Writing the query can be tricky. You'll need to add "term" and "phrase" fields before adding the rest of the term suggester or phrase suggester params (more details [here](https://www.elastic.co/guide/en/elasticsearch/reference/7.17/search-suggesters.html#phrase-suggester)).

@@ -1,0 +1,111 @@
+# Create index with analyzers
+PUT /suggesters_index
+{
+    "settings":{
+        "analysis":{
+            "analyzer":{
+                "smarter_hyphens":{
+                    "tokenizer":"smarter_hyphens_tokenizer",
+                    "filter":[
+                        "smarter_hyphens_filter",
+                        "lowercase"
+                    ]
+                },
+                "trigram":{
+                    "type":"custom",
+                    "tokenizer":"standard",
+                    "filter":[
+                        "lowercase",
+                        "shingle"
+                    ]
+                }
+            },
+            "tokenizer":{
+                "smarter_hyphens_tokenizer":{
+                    "type":"char_group",
+                    "tokenize_on_chars":[
+                        "whitespace",
+                        "\n"
+                    ]
+                }
+            },
+            "filter":{
+                "smarter_hyphens_filter":{
+                    "type":"word_delimiter_graph",
+                    "catenate_all":true,
+                    "catenate_words":true
+                },
+                "shingle":{
+                    "type":"shingle",
+                    "min_shingle_size":2,
+                    "max_shingle_size":3
+                }
+            }
+        },
+        "index":{
+            "query":{
+                "default_field":"body"
+            }
+        }
+    },
+    "mappings":{
+        "properties":{
+            "title":{
+                "type":"text",
+                "analyzer":"english",
+                "fields":{
+                    "trigrams":{
+                        "type":"text",
+                        "analyzer":"trigram"
+                    }
+                }
+            },
+            "completion":{
+                "type":"completion"
+            },
+            "body":{
+                "type":"text",
+                "analyzer":"english"
+            },
+            "in_stock":{
+                "type":"boolean"
+            },
+            "category":{
+                "type":"keyword",
+                "ignore_above":"256"
+            },
+            "price":{
+                "type":"float"
+            }
+        }
+    }
+}
+
+# Analyze the queries
+POST /suggesters_index/_analyze
+{
+  "analyzer": "smarter_hyphens",
+  "explain": "true", 
+  "text": ["i-phone"]
+}
+
+POST /suggesters_index/_analyze
+{
+  "tokenizer": "smarter_hyphens_tokenizer",
+  "explain": "true", 
+  "text": ["i-phone"]
+}
+
+# Test fuzzy matching
+GET bbuy_products/_search
+{
+  "query": {
+    "match": {
+      "name":{
+        "query": "iphone4",
+        "fuzziness": "1"
+      }
+    }
+  },
+  "_source": "name"
+}

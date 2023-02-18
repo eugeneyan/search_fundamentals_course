@@ -157,18 +157,35 @@ def create_query(user_query, filters, sort="_score", sortDir="desc", size=10, in
 # Week 2, Level 2: 
 ##########
 # Give a user query from the UI and the query object we've built so far, adding in spelling suggestions
+# This uses the query pattern of global suggest text: https://www.elastic.co/guide/en/elasticsearch/reference/7.17/search-suggesters.html#global-suggest
 def add_spelling_suggestions(query_obj, user_query):
     #### W2, L2, S1
-    print("TODO: IMPLEMENT ME")
-    #query_obj["suggest"] = {
-    #    "text": user_query,
-    #    "phrase_suggest": {
-
-    #    },
-    #    "term_suggest": {
-
-    #    }
-    #}
+    query_obj["suggest"] = {
+       "text": user_query,
+       "term_suggest": {
+            "term": {
+                "field": "suggest.text",
+                "suggest_mode": "popular",
+                "min_word_length": 3
+           }
+       },
+       "phrase_suggest": {
+            "phrase": {
+                "field": "suggest.trigrams",
+                "highlight": {
+                    "pre_tag": "<em>",
+                    "post_tag": "</em>"
+                },
+                "direct_generator": [{
+                    "field": "suggest.trigrams",
+                    "suggest_mode": "popular",
+                    "min_word_length": 2 
+                }]
+            }
+       }
+    }
+    
+    return query_obj
 
 
 # Given the user query from the UI, the query object we've built so far and a Pandas data GroupBy data frame,
